@@ -1,6 +1,7 @@
 import apiClient from './index';
 import { systemConfigApi } from './systemConfig';
 import { toCamelCase } from './utils';
+import type { UiLanguage } from '../i18n/uiText';
 
 const SCREENING_SCREEN_TIMEOUT_MS = 180000;
 const SCREENING_REQUEST_TIMEOUT_MS = 300000;
@@ -467,12 +468,14 @@ export const screeningApi = {
     return toCamelCase<ScreeningHotspotDetail>(response.data);
   },
 
-  async enable(): Promise<void> {
+  async enable(language: UiLanguage = 'zh'): Promise<void> {
     await setScreeningEnabled('true');
     try {
       const status = await screeningApi.getStatus();
       if (!status.available) {
-        throw new Error('选股功能不可用。请检查策略配置、数据依赖和服务日志。');
+        throw new Error(language === 'en'
+          ? 'Screening is unavailable. Check strategy configuration, data dependencies, and service logs.'
+          : '选股功能不可用。请检查策略配置、数据依赖和服务日志。');
       }
     } catch (error) {
       try {

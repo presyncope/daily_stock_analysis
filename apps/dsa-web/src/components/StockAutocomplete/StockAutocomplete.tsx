@@ -14,6 +14,8 @@ import { useAutocomplete } from '../../hooks/useAutocomplete';
 import { SuggestionsList } from './SuggestionsList';
 import { cn } from '../../utils/cn';
 import type { Market } from '../../types/stockIndex';
+import { useUiLanguage } from '../../contexts/UiLanguageContext';
+import { STOCK_AUTOCOMPLETE_TEXT } from '../../locales/commonText';
 
 const AUTOCOMPLETE_INPUT_CLASS =
   'input-surface input-focus-glow h-11 w-full rounded-xl border bg-transparent px-4 text-sm transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-60';
@@ -45,10 +47,11 @@ function FallbackInput({
   onChange,
   onSubmit,
   disabled = false,
-  placeholder = '输入股票代码或名称',
+  placeholder,
   ariaLabel,
   className,
 }: StockAutocompleteProps) {
+  const { language } = useUiLanguage();
   return (
     <input
       type="text"
@@ -60,7 +63,7 @@ function FallbackInput({
           onSubmit(value);
         }
       }}
-      placeholder={placeholder}
+      placeholder={placeholder ?? STOCK_AUTOCOMPLETE_TEXT[language].placeholder}
       aria-label={ariaLabel}
       disabled={disabled}
       className={cn(AUTOCOMPLETE_INPUT_CLASS, className)}
@@ -107,10 +110,12 @@ function StockAutocompleteInner({
   onChange,
   onSubmit,
   disabled = false,
-  placeholder = '输入股票代码或名称',
+  placeholder,
   ariaLabel,
   className,
 }: StockAutocompleteProps) {
+  const { language } = useUiLanguage();
+  const resolvedPlaceholder = placeholder ?? STOCK_AUTOCOMPLETE_TEXT[language].placeholder;
   const { index, loading, fallback } = useStockIndex();
   const {
     // query,
@@ -267,7 +272,7 @@ function StockAutocompleteInner({
           }
         }}
         onBlur={handleBlur}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         aria-label={ariaLabel}
         disabled={disabled}
         className={cn(

@@ -1,6 +1,8 @@
 import type { AnalysisReport } from '../types/analysis';
 import { historyApi } from '../api/history';
 import { validateStockCode } from './validation';
+import { formatUiText, type UiLanguage } from '../i18n/uiText';
+import { CHAT_FOLLOW_UP_PROMPT } from '../locales/chatText';
 
 export interface ChatFollowUpContext {
   stock_code: string;
@@ -102,9 +104,13 @@ export function parseFollowUpRecordId(recordId: string | null): number | undefin
   return parsed;
 }
 
-export function buildFollowUpPrompt(stockCode: string, stockName: string | null): string {
+export function buildFollowUpPrompt(
+  stockCode: string,
+  stockName: string | null,
+  language: UiLanguage = 'zh',
+): string {
   const displayName = stockName ? `${stockName}(${stockCode})` : stockCode;
-  return `请深入分析 ${displayName}`;
+  return formatUiText(CHAT_FOLLOW_UP_PROMPT[language], { name: displayName });
 }
 
 export function buildChatFollowUpContext(

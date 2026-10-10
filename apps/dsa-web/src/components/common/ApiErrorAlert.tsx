@@ -1,5 +1,5 @@
 import type React from 'react';
-import type { ParsedApiError } from '../../api/error';
+import { localizeParsedApiError, type ParsedApiError } from '../../api/error';
 import { useUiLanguage } from '../../contexts/UiLanguageContext';
 
 interface ApiErrorAlertProps {
@@ -12,14 +12,15 @@ interface ApiErrorAlertProps {
 }
 
 export const ApiErrorAlert: React.FC<ApiErrorAlertProps> = ({
-  error,
+  error: rawError,
   className = '',
   actionLabel,
   onAction,
   dismissLabel,
   onDismiss,
 }) => {
-  const { t } = useUiLanguage();
+  const { language, t } = useUiLanguage();
+  const error = localizeParsedApiError(rawError, language);
   const showDetails = error.rawMessage.trim() && error.rawMessage.trim() !== error.message.trim();
 
   return (

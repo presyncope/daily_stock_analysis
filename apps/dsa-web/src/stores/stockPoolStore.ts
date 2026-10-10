@@ -7,6 +7,8 @@ import type { AnalysisReport, HistoryItem, HistoryListResponse, ReportLanguage, 
 import { getRecentStartDate, getTodayInShanghai } from '../utils/format';
 import { toAssetAwareCodeKey, type AssetAwareAssetType } from '../utils/stockCode';
 import { isObviouslyInvalidStockQuery, looksLikeStockCode, validateStockCode } from '../utils/validation';
+import { formatUiText, type UiLanguage } from '../i18n/uiText';
+import { STOCK_INPUT_TEXT } from '../locales/commonText';
 
 const PAGE_SIZE = 20;
 const STOCK_HISTORY_PAGE_SIZE = 20;
@@ -32,6 +34,8 @@ type SubmitAnalysisOptions = {
   forceRefresh?: boolean;
   skills?: string[];
   reportLanguage?: ReportLanguage;
+  /** UI language for frontend-authored input errors; defaults to zh. */
+  uiLanguage?: UiLanguage;
 };
 
 type CompletedTaskSelectionIntent = {
@@ -893,20 +897,22 @@ export const useStockPoolStore = create<StockPoolState>((set, get) => ({
     const notify = options?.notify ?? state.notify;
     const forceRefresh = options?.forceRefresh ?? false;
     const skills = options?.skills;
+    const uiLanguage = options?.uiLanguage ?? 'zh';
+    const inputText = STOCK_INPUT_TEXT[uiLanguage];
 
     if (!stockCodeInput) {
-      set({ inputError: '请输入股票代码', duplicateError: null });
+      set({ inputError: inputText.emptyCode, duplicateError: null });
       return;
     }
 
     if (selectionSource !== 'autocomplete' && isObviouslyInvalidStockQuery(stockCodeInput)) {
-      set({ inputError: '请输入有效的股票代码或股票名称', duplicateError: null });
+      set({ inputError: inputText.invalidQuery, duplicateError: null });
       return;
     }
 
     let normalizedStockCode = stockCodeInput;
     if (selectionSource === 'autocomplete' || looksLikeStockCode(stockCodeInput)) {
-      const { valid, message, normalized } = validateStockCode(stockCodeInput);
+      const { valid, message, normalized } = validateStockCode(stockCodeInput, uiLanguage);
       if (!valid) {
         set({ inputError: message, duplicateError: null });
         return;
@@ -950,7 +956,7 @@ export const useStockPoolStore = create<StockPoolState>((set, get) => ({
 
       if (error instanceof DuplicateTaskError) {
         set({
-          duplicateError: `股票 ${error.stockCode} 正在分析中，请等待完成`,
+          duplicateError: formatUiText(inputText.duplicateTask, { code: error.stockCode }),
         });
         return;
       }

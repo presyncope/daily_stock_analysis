@@ -1,3 +1,6 @@
+import type { UiLanguage } from '../i18n/uiText';
+import { REPORT_TYPE_LABELS } from '../locales/commonText';
+
 export const formatDateTime = (value?: string | null): string => {
   if (!value) return '—';
   const date = new Date(value);
@@ -49,12 +52,8 @@ export const getRecentStartDate = (days: number): string => {
 export const getTodayInShanghai = (): string =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
 
-export const formatReportType = (value?: string): string => {
+export const formatReportType = (value?: string, language: UiLanguage = 'zh'): string => {
   if (!value) return '—';
-  if (value === 'simple') return '普通';
-  if (value === 'detailed') return '标准';
-  if (value === 'full') return '完整';
-  if (value === 'brief') return '简版';
-  if (value === 'market_review') return '大盘';
-  return value;
+  const labels = REPORT_TYPE_LABELS[language];
+  return Object.prototype.hasOwnProperty.call(labels, value) ? labels[value] : value;
 };

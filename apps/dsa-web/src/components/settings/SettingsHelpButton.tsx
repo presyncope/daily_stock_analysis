@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import type { SystemConfigFieldSchema } from '../../types/systemConfig';
 import { useUiLanguage } from '../../contexts/UiLanguageContext';
 import { getSettingsHelpContent } from '../../locales/settingsHelp';
+import { getDocLinkLabel } from '../../utils/systemConfigI18n';
 import { cn } from '../../utils/cn';
 import { Tooltip } from '../common';
 
@@ -278,7 +279,7 @@ export const SettingsHelpButton: React.FC<SettingsHelpButtonProps> = ({
                             rel="noreferrer"
                             target="_blank"
                           >
-                            <span>{doc.label}</span>
+                            <span>{getDocLinkLabel(doc.label, language)}</span>
                             <ExternalLink aria-hidden="true" className="h-3.5 w-3.5" />
                           </a>
                         ))}

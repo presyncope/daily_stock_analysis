@@ -1,3 +1,6 @@
+import type { UiLanguage } from '../i18n/uiText';
+import { STOCK_INPUT_TEXT } from '../locales/commonText';
+
 interface ValidationResult {
   valid: boolean;
   message?: string;
@@ -31,18 +34,18 @@ export const looksLikeStockCode = (value: string): boolean => {
 /**
  * Validate common A-share, HK, US, JP, and KR stock code formats.
  */
-export const validateStockCode = (value: string): ValidationResult => {
+export const validateStockCode = (value: string, language: UiLanguage = 'zh'): ValidationResult => {
   const normalized = value.trim().toUpperCase();
 
   if (!normalized) {
-    return { valid: false, message: '请输入股票代码', normalized };
+    return { valid: false, message: STOCK_INPUT_TEXT[language].emptyCode, normalized };
   }
 
   const valid = looksLikeStockCode(normalized);
 
   return {
     valid,
-    message: valid ? undefined : '股票代码格式不正确',
+    message: valid ? undefined : STOCK_INPUT_TEXT[language].invalidCode,
     normalized,
   };
 };

@@ -3,6 +3,8 @@ import { API_BASE_URL } from '../utils/constants';
 import { createApiError, isApiRequestError, parseApiError } from './error';
 import { toCamelCase } from './utils';
 import type { AgentBackendStatusResponse } from '../types/systemConfig';
+import type { UiLanguage } from '../i18n/uiText';
+import { CHAT_TEXT } from '../locales/chatText';
 
 export interface ChatStreamOptions {
   signal?: AbortSignal;
@@ -100,7 +102,7 @@ export const agentApi = {
   async deleteChatSession(sessionId: string): Promise<void> {
     await apiClient.delete(`/api/v1/agent/chat/sessions/${sessionId}`);
   },
-  async sendChat(content: string): Promise<{ success: boolean }> {
+  async sendChat(content: string, language: UiLanguage = 'zh'): Promise<{ success: boolean }> {
     const response = await apiClient.post<{
       success: boolean;
       error?: string;
@@ -108,7 +110,7 @@ export const agentApi = {
     }>('/api/v1/agent/chat/send', { content });
     const data = response.data;
     if (data.success === false) {
-      throw new Error(data.message || '发送失败');
+      throw new Error(data.message || CHAT_TEXT[language].sendFailed);
     }
     return { success: true };
   },

@@ -4,7 +4,7 @@ import { Badge, Button, Select, Input } from '../common';
 import type { ConfigValidationIssue, SystemConfigFieldSchema, SystemConfigItem } from '../../types/systemConfig';
 import { useUiLanguage } from '../../contexts/UiLanguageContext';
 import { getSettingsHelpContent } from '../../locales/settingsHelp';
-import { getFieldDescriptionZh, getFieldOptionLabel, getFieldTitleZh } from '../../utils/systemConfigI18n';
+import { getFieldDescriptionZh, getFieldOptionLabel, getFieldTitleEn, getFieldTitleZh } from '../../utils/systemConfigI18n';
 import type { UiLanguage, UiTextKey } from '../../i18n/uiText';
 import { cn } from '../../utils/cn';
 import { SettingsHelpButton } from './SettingsHelpButton';
@@ -228,7 +228,7 @@ export const SettingsField: React.FC<SettingsFieldProps> = ({
   const fallbackTitle = schema?.title ?? item.key;
   const title = language === 'zh'
     ? getFieldTitleZh(localizationKey, getFieldTitleZh(item.key, fallbackTitle))
-    : fallbackTitle;
+    : getFieldTitleEn(localizationKey, fallbackTitle);
   const description = language === 'en'
     ? helpContent?.summary ?? schema?.description ?? ''
     : getFieldDescriptionZh(localizationKey, getFieldDescriptionZh(item.key, schema?.description));

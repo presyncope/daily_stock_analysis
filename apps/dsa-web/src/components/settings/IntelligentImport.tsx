@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useCallback, useRef, useState } from 'react';
-import { getParsedApiError } from '../../api/error';
+import { getParsedApiError, localizeParsedApiError } from '../../api/error';
 import { stocksApi, type ExtractItem } from '../../api/stocks';
 import { systemConfigApi, SystemConfigConflictError } from '../../api/systemConfig';
 import { Badge, Button, InlineAlert } from '../common';
@@ -139,7 +139,7 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
         const res = await stocksApi.extractFromImage(file);
         addItems(res.items ?? res.codes.map((c) => ({ code: c, name: null, confidence: 'medium' })));
       } catch (e) {
-        const parsed = getParsedApiError(e);
+        const parsed = localizeParsedApiError(getParsedApiError(e), language);
         const err = e && typeof e === 'object' ? (e as { response?: { status?: number }; code?: string }) : null;
         let fallback = t('settings.intelligentImportRecognitionFailed');
         if (err?.response?.status === 429) fallback = t('settings.intelligentImportRateLimited');
@@ -149,7 +149,7 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
         setIsLoading(false);
       }
     },
-    [addItems, t],
+    [addItems, language, t],
   );
 
   const handleDataFile = useCallback(
@@ -164,13 +164,13 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
         const res = await stocksApi.parseImport(file);
         addItems(res.items ?? res.codes.map((c) => ({ code: c, name: null, confidence: 'medium' })));
       } catch (e) {
-        const parsed = getParsedApiError(e);
+        const parsed = localizeParsedApiError(getParsedApiError(e), language);
         setError(parsed.message || t('settings.intelligentImportParseFailed'));
       } finally {
         setIsLoading(false);
       }
     },
-    [addItems, t],
+    [addItems, language, t],
   );
 
   const handlePasteParse = useCallback(() => {
@@ -189,11 +189,11 @@ export const IntelligentImport: React.FC<IntelligentImportProps> = ({
         setPasteText('');
       })
       .catch((e) => {
-        const parsed = getParsedApiError(e);
+        const parsed = localizeParsedApiError(getParsedApiError(e), language);
         setError(parsed.message || t('settings.intelligentImportParseFailed'));
       })
       .finally(() => setIsLoading(false));
-  }, [pasteText, addItems, t]);
+  }, [pasteText, addItems, language, t]);
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {

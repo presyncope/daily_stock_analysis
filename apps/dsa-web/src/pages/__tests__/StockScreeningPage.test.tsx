@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ScreeningHotspotDetail } from '../../api/screening';
+import { UiLanguageProvider } from '../../contexts/UiLanguageContext';
+import { UI_LANGUAGE_STORAGE_KEY } from '../../utils/uiLanguage';
 import StockScreeningPage from '../StockScreeningPage';
 
 const {
@@ -173,6 +175,29 @@ describe('StockScreeningPage', () => {
     expect(screen.queryByText(/theme_heat/)).not.toBeInTheDocument();
     expect(screen.queryByText('实验功能与风险提示')).not.toBeInTheDocument();
     expect(screen.queryByText('选股结果')).not.toBeInTheDocument();
+  });
+
+  it('renders English labels and maps built-in strategy ids when UI language is en', async () => {
+    window.localStorage.setItem(UI_LANGUAGE_STORAGE_KEY, 'en');
+    try {
+      getScreeningStatus.mockResolvedValueOnce({ enabled: true, available: true });
+
+      render(
+        <UiLanguageProvider>
+          <StockScreeningPage />
+        </UiLanguageProvider>,
+      );
+
+      expect(await screen.findByText('Screening enabled')).toBeInTheDocument();
+      expect(screen.getByText('Hot themes')).toBeInTheDocument();
+      expect(await screen.findByText(/Conservative low-valuation screen/)).toBeInTheDocument();
+      expect(screen.getByText('Value')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Run screening/ })).toBeInTheDocument();
+      expect(await screen.findByText('No screening history')).toBeInTheDocument();
+      expect(screen.queryByText('选股已开启')).not.toBeInTheDocument();
+    } finally {
+      window.localStorage.removeItem(UI_LANGUAGE_STORAGE_KEY);
+    }
   });
 
   it('re-syncs enabled state when Screening availability check fails after config is enabled', async () => {

@@ -17,6 +17,7 @@ interface SettingsPanelErrorBoundaryLabels {
   runtimeErrorMessage: string;
   defaultDiagnosticHint: string;
   errorSummaryPrefix: string;
+  unknownError: string;
 }
 
 interface SettingsPanelErrorBoundaryState {
@@ -25,6 +26,7 @@ interface SettingsPanelErrorBoundaryState {
 }
 
 const MAX_ERROR_SUMMARY_LENGTH = 180;
+const UNKNOWN_ERROR_SUMMARY = '未知前端运行时异常';
 
 function sanitizeUrlLikeText(value: string) {
   return value.replace(/https?:\/\/[^\s"'<>]+/gi, (match) => {
@@ -47,8 +49,8 @@ function getSafeErrorSummary(error: unknown) {
     ? error.message
     : typeof error === 'string'
       ? error
-      : '未知前端运行时异常';
-  const normalized = rawMessage.replace(/\s+/g, ' ').trim() || '未知前端运行时异常';
+      : UNKNOWN_ERROR_SUMMARY;
+  const normalized = rawMessage.replace(/\s+/g, ' ').trim() || UNKNOWN_ERROR_SUMMARY;
   const sanitized = sanitizeUrlLikeText(normalized)
     .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, 'Bearer [redacted]')
     .replace(/\b(sk-[A-Za-z0-9_-]{8,})\b/g, '[redacted-key]')
@@ -112,7 +114,8 @@ class SettingsPanelErrorBoundaryImpl extends Component<
               )}
               {this.state.errorSummary ? (
                 <p className="break-words font-mono text-xs opacity-80">
-                  {this.props.labels.errorSummaryPrefix}{this.state.errorSummary}
+                  {this.props.labels.errorSummaryPrefix}
+                  {this.state.errorSummary === UNKNOWN_ERROR_SUMMARY ? this.props.labels.unknownError : this.state.errorSummary}
                 </p>
               ) : null}
             </div>
@@ -131,12 +134,14 @@ export const SettingsPanelErrorBoundary = (props: SettingsPanelErrorBoundaryProp
         runtimeErrorMessage: 'This settings area hit a frontend runtime error. Other settings remain usable.',
         defaultDiagnosticHint: 'Provide the release version, runtime environment, and trigger path to help diagnose the issue.',
         errorSummaryPrefix: 'Error summary: ',
+        unknownError: 'Unknown frontend runtime error',
       }
     : {
         loadFailedSuffix: '加载失败',
         runtimeErrorMessage: '该设置区域发生前端运行时异常，页面其他设置仍可继续使用。',
         defaultDiagnosticHint: '请补充 release 版本、运行环境和触发入口，便于定位问题。',
         errorSummaryPrefix: '错误摘要：',
+        unknownError: UNKNOWN_ERROR_SUMMARY,
       };
 
   return <SettingsPanelErrorBoundaryImpl {...props} labels={labels} />;

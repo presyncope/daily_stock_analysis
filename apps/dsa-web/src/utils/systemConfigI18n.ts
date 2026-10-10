@@ -553,6 +553,61 @@ const fieldOptionLabelMapEn: Record<string, Record<string, string>> = {
     'auto (regime-based)': 'Auto (regime-based)',
     'manual (use agent_skills)': 'Manual (use AGENT_SKILLS)',
   },
+  FEISHU_RECEIVE_ID_TYPE: {
+    chat_id: 'chat_id (group chat)',
+    open_id: 'open_id (direct message)',
+  },
+  FEISHU_DOMAIN: {
+    feishu: 'feishu (Feishu China)',
+    lark: 'lark (international)',
+  },
+  AGENT_CONTEXT_COMPRESSION_PROFILE: {
+    cost: 'Cost first',
+    balanced: 'Balanced (recommended)',
+    long_context_raw_first: 'Long context, raw text first',
+  },
+};
+
+// English overrides for backend schema titles that are still Chinese.
+const fieldTitleMapEn: Record<string, string> = {
+  FUTU_HK_REALTIME_SOURCE_PRIORITY: 'Futu HK Realtime Source Priority',
+};
+
+// English labels for backend schema doc links (the payload only carries label + href).
+const docLinkLabelMapEn: Record<string, string> = {
+  'AnalysisContextPack P6 文档、迁移与回滚': 'AnalysisContextPack P6 docs, migration and rollback',
+  'LiteLLM config（官方）': 'LiteLLM config (official)',
+  'LiteLLM model_list（官方）': 'LiteLLM model_list (official)',
+  'LiteLLM OpenAI-compatible（官方）': 'LiteLLM OpenAI-compatible (official)',
+  'LiteLLM Providers（官方）': 'LiteLLM Providers (official)',
+  'LiteLLM proxy config（官方）': 'LiteLLM proxy config (official)',
+  'LLM 服务商配置速查': 'LLM provider quick reference',
+  'LLM 配置指南': 'LLM configuration guide',
+  'LLM 配置指南：YAML 模式': 'LLM configuration guide: YAML mode',
+  'LLM 配置指南：渠道模式': 'LLM configuration guide: channel mode',
+  'LLM 配置指南：问股可见对话上下文压缩': 'LLM configuration guide: Ask-Stock visible context compression',
+  'OpenAI 请求与鉴权（官方）': 'OpenAI requests and authentication (official)',
+  'Tushare 股票列表指南': 'Tushare stock list guide',
+  '云服务器访问 WebUI': 'Accessing the WebUI on a cloud server',
+  '告警中心文档': 'Alert center docs',
+  '完整指南：Agent 配置': 'Full guide: Agent configuration',
+  '完整指南：AI 模型配置': 'Full guide: AI model configuration',
+  '完整指南：Discord': 'Full guide: Discord',
+  '完整指南：Telegram': 'Full guide: Telegram',
+  '完整指南：WebUI 与 API': 'Full guide: WebUI and API',
+  '完整指南：其他配置': 'Full guide: other settings',
+  '完整指南：回测配置': 'Full guide: backtest configuration',
+  '完整指南：搜索服务配置': 'Full guide: search service configuration',
+  '完整指南：数据源配置': 'Full guide: data source configuration',
+  '完整指南：环境变量完整列表': 'Full guide: environment variable reference',
+  '完整指南：自定义 Webhook': 'Full guide: custom webhook',
+  '完整指南：通知渠道配置': 'Full guide: notification channels',
+  '完整指南：邮件': 'Full guide: email',
+  '完整指南：飞书通知配置': 'Full guide: Feishu notifications',
+  数据源配置指南: 'Data source configuration guide',
+  选股说明: 'Stock screening guide',
+  通知渠道与路由: 'Notification channels and routing',
+  飞书机器人配置专题: 'Feishu bot setup guide',
 };
 
 function normalizeOptionToken(raw: string): string {
@@ -577,6 +632,14 @@ export function getCategoryDescription(category: SystemConfigCategory, fallback?
 
 export function getFieldTitleZh(key: string, fallback?: string): string {
   return fieldTitleMap[key] || fallback || key;
+}
+
+export function getFieldTitleEn(key: string, fallback?: string): string {
+  return fieldTitleMapEn[key] || fallback || key;
+}
+
+export function getDocLinkLabel(label: string, locale: UiLanguage = 'zh'): string {
+  return locale === 'en' ? docLinkLabelMapEn[label] ?? label : label;
 }
 
 export function getFieldDescriptionZh(key: string, fallback?: string): string {

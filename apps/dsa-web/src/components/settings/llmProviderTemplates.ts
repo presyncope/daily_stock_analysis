@@ -1,3 +1,5 @@
+import type { UiLanguage } from '../../i18n/uiText';
+
 export type ChannelProtocol = 'openai' | 'deepseek' | 'gemini' | 'anthropic' | 'vertex_ai' | 'ollama';
 export type LLMProviderCapability =
   | 'openai-compatible'
@@ -245,3 +247,83 @@ export const MODEL_PLACEHOLDERS_BY_PROTOCOL: Record<ChannelProtocol, string> = {
   vertex_ai: 'gemini-3.1-pro-preview',
   ollama: 'llama3.2,qwen2.5',
 };
+
+const LLM_PROVIDER_CAPABILITY_LABELS_EN: Record<LLMProviderCapability, { label: string; hint: string }> = {
+  'openai-compatible': {
+    label: 'OpenAI compatible',
+    hint: 'Configure the Base URL as an OpenAI-compatible endpoint; /chat/completions is not appended.',
+  },
+  aggregator: {
+    label: 'Aggregator',
+    hint: 'Model visibility, routing, and pricing may change with account permissions and platform policy.',
+  },
+  'official-api': {
+    label: 'Official API',
+    hint: 'Uses the provider\'s official protocol or official compatible endpoint.',
+  },
+  'model-discovery': {
+    label: 'Model discovery',
+    hint: 'Supports fetching the model list via /models; actual results depend on account permissions and the API key.',
+  },
+  vision: {
+    label: 'Vision hint',
+    hint: 'This provider is commonly used for vision; actual model capability depends on your account and model list.',
+  },
+  'local-runtime': {
+    label: 'Local runtime',
+    hint: 'The current runtime environment must be able to reach the local service.',
+  },
+};
+
+const MODEL_LIST_DEPENDS_ON_KEY_EN = 'Model list and visibility depend on account permissions and the API key.';
+
+const LLM_PROVIDER_TEMPLATE_TEXT_EN: Record<string, { label?: string; configHint?: string }> = {
+  aihubmix: { label: 'AIHubmix (aggregator)' },
+  anspire: {
+    label: 'Anspire Open (models + search)',
+    configHint: 'The same ANSPIRE_API_KEYS can be reused for search and the LLM channel. The models and gateway below are examples; actual availability depends on your account permissions and console. Click "Test connection" first to confirm.',
+  },
+  deepseek: { label: 'DeepSeek (official)' },
+  dashscope: { label: 'Qwen (Dashscope)' },
+  zhipu: { label: 'Zhipu GLM' },
+  moonshot: { label: 'Moonshot (Kimi)' },
+  minimax: { label: 'MiniMax (official)' },
+  volcengine: {
+    label: 'Volcengine Ark (Doubao)',
+    configHint: 'Do not mix the online inference endpoint / region with the Coding Plan dedicated endpoint.',
+  },
+  siliconflow: { label: 'SiliconFlow', configHint: MODEL_LIST_DEPENDS_ON_KEY_EN },
+  openrouter: { configHint: MODEL_LIST_DEPENDS_ON_KEY_EN },
+  requesty: {
+    configHint: 'Model list and visibility depend on account permissions and the API key. For the EU region, change the Base URL to https://router.eu.requesty.ai/v1.',
+  },
+  gemini: { label: 'Gemini (official)' },
+  anthropic: { label: 'Anthropic (official)' },
+  openai: { label: 'OpenAI (official)' },
+  ollama: {
+    label: 'Ollama (local)',
+    configHint: 'The local machine, Docker, or self-hosted runner must be able to reach the Ollama service.',
+  },
+  custom: { label: 'Custom channel' },
+};
+
+export function getProviderCapabilityLabel(
+  capability: LLMProviderCapability,
+  language: UiLanguage = 'zh',
+): { label: string; hint: string } {
+  return language === 'en' ? LLM_PROVIDER_CAPABILITY_LABELS_EN[capability] : LLM_PROVIDER_CAPABILITY_LABELS[capability];
+}
+
+export function getProviderTemplateLabel(template: LLMProviderTemplate, language: UiLanguage = 'zh'): string {
+  return (language === 'en' ? LLM_PROVIDER_TEMPLATE_TEXT_EN[template.channelId]?.label : undefined) ?? template.label;
+}
+
+export function getProviderTemplateConfigHint(
+  template: LLMProviderTemplate,
+  language: UiLanguage = 'zh',
+): string | undefined {
+  if (language === 'en' && template.configHint) {
+    return LLM_PROVIDER_TEMPLATE_TEXT_EN[template.channelId]?.configHint ?? template.configHint;
+  }
+  return template.configHint;
+}

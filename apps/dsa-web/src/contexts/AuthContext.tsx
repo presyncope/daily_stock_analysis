@@ -1,8 +1,10 @@
 import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { createParsedApiError, getParsedApiError, type ParsedApiError } from '../api/error';
+import { createParsedApiError, getParsedApiError, localizeParsedApiError, type ParsedApiError } from '../api/error';
 import { authApi } from '../api/auth';
 import { useStockPoolStore } from '../stores';
+import type { UiLanguage } from '../i18n/uiText';
+import { useUiLanguage } from './UiLanguageContext';
 
 type AuthContextValue = {
   authEnabled: boolean;
@@ -24,21 +26,22 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function extractLoginError(err: unknown): ParsedApiError {
+function extractLoginError(err: unknown, language: UiLanguage = 'zh'): ParsedApiError {
   const parsed = getParsedApiError(err);
   if (parsed.status === 429) {
-    return createParsedApiError({
+    return localizeParsedApiError(createParsedApiError({
       title: '登录尝试过于频繁',
       message: '尝试次数过多，请稍后再试。',
       rawMessage: parsed.rawMessage,
       status: parsed.status,
       category: parsed.category,
-    });
+    }), language);
   }
-  return parsed;
+  return localizeParsedApiError(parsed, language);
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { language } = useUiLanguage();
   const [authEnabled, setAuthEnabled] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [passwordSet, setPasswordSet] = useState(false);
@@ -87,10 +90,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await fetchStatus();
         return { success: true };
       } catch (err: unknown) {
-        return { success: false, error: extractLoginError(err) };
+        return { success: false, error: extractLoginError(err, language) };
       }
     },
-    [fetchStatus]
+    [fetchStatus, language]
   );
 
   const changePassword = useCallback(
@@ -103,10 +106,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await authApi.changePassword(currentPassword, newPassword, newPasswordConfirm);
         return { success: true };
       } catch (err: unknown) {
-        return { success: false, error: getParsedApiError(err) };
+        return { success: false, error: localizeParsedApiError(getParsedApiError(err), language) };
       }
     },
-    []
+    [language]
   );
 
   const logout = useCallback(async () => {

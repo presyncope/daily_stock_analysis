@@ -7,6 +7,7 @@ import type {
   PortfolioPositionItem,
   PortfolioSide,
 } from '../types/portfolio';
+import type { UiLanguage } from '../i18n/uiText';
 import { toDateInputValue } from './format';
 
 export type FxRefreshFeedback = {
@@ -53,7 +54,17 @@ export function formatPositionMoney(value: number, row: PortfolioPositionItem): 
   return formatMoney(value, row.valuationCurrency);
 }
 
-export function getPositionPriceLabel(row: PortfolioPositionItem): string {
+export function getPositionPriceLabel(row: PortfolioPositionItem, language: UiLanguage = 'zh'): string {
+  if (language === 'en') {
+    if (!hasPositionPrice(row)) return 'Missing price';
+    if (row.priceSource === 'realtime_quote') {
+      return row.priceProvider ? `Realtime · ${row.priceProvider}` : 'Realtime';
+    }
+    if (row.priceSource === 'history_close') {
+      return row.priceStale && row.priceDate ? `Close · ${row.priceDate}` : 'Close';
+    }
+    return row.priceSource || 'Unknown source';
+  }
   if (!hasPositionPrice(row)) return '缺价';
   if (row.priceSource === 'realtime_quote') {
     return row.priceProvider ? `实时价 · ${row.priceProvider}` : '实时价';
@@ -64,19 +75,32 @@ export function getPositionPriceLabel(row: PortfolioPositionItem): string {
   return row.priceSource || '未知来源';
 }
 
-export function formatSideLabel(value: PortfolioSide): string {
+export function formatSideLabel(value: PortfolioSide, language: UiLanguage = 'zh'): string {
+  if (language === 'en') return value === 'buy' ? 'Buy' : 'Sell';
   return value === 'buy' ? '买入' : '卖出';
 }
 
-export function formatCashDirectionLabel(value: PortfolioCashDirection): string {
+export function formatCashDirectionLabel(value: PortfolioCashDirection, language: UiLanguage = 'zh'): string {
+  if (language === 'en') return value === 'in' ? 'Inflow' : 'Outflow';
   return value === 'in' ? '流入' : '流出';
 }
 
-export function formatCorporateActionLabel(value: PortfolioCorporateActionType): string {
+export function formatCorporateActionLabel(value: PortfolioCorporateActionType, language: UiLanguage = 'zh'): string {
+  if (language === 'en') return value === 'cash_dividend' ? 'Cash dividend' : 'Split adjustment';
   return value === 'cash_dividend' ? '现金分红' : '拆并股调整';
 }
 
-export function formatBrokerLabel(value: string, displayName?: string): string {
+const BROKER_EN_NAMES: Record<string, string> = {
+  huatai: 'Huatai',
+  citic: 'CITIC',
+  cmb: 'CMB',
+};
+
+export function formatBrokerLabel(value: string, displayName?: string, language: UiLanguage = 'zh'): string {
+  if (language === 'en') {
+    const name = BROKER_EN_NAMES[value] ?? displayName?.trim();
+    return name ? `${value} (${name})` : value;
+  }
   if (displayName && displayName.trim()) return `${value}（${displayName.trim()}）`;
   if (value === 'huatai') return 'huatai（华泰）';
   if (value === 'citic') return 'citic（中信）';
@@ -84,7 +108,27 @@ export function formatBrokerLabel(value: string, displayName?: string): string {
   return value;
 }
 
-export function buildFxRefreshFeedback(data: PortfolioFxRefreshResponse): FxRefreshFeedback {
+export function buildFxRefreshFeedback(data: PortfolioFxRefreshResponse, language: UiLanguage = 'zh'): FxRefreshFeedback {
+  if (language === 'en') {
+    if (data.refreshEnabled === false) {
+      return { tone: 'neutral', text: 'Online FX refresh is disabled.' };
+    }
+    if (data.pairCount === 0) {
+      return { tone: 'neutral', text: 'No FX pairs to refresh in the current scope.' };
+    }
+    if (data.updatedCount > 0 && data.staleCount === 0 && data.errorCount === 0) {
+      return { tone: 'success', text: `FX rates refreshed: ${data.updatedCount} pairs updated.` };
+    }
+    const enSummary = `Updated ${data.updatedCount}, still stale ${data.staleCount}, failed ${data.errorCount}.`;
+    if (data.staleCount > 0) {
+      return {
+        tone: 'warning',
+        text: `Refresh attempted, but some pairs still use stale/fallback rates. ${enSummary}`,
+      };
+    }
+    return { tone: 'warning', text: `Online refresh did not fully succeed. ${enSummary}` };
+  }
+
   if (data.refreshEnabled === false) {
     return {
       tone: 'neutral',

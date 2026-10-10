@@ -38,6 +38,8 @@ import type {
   TaskInfo,
 } from '../types/analysis';
 import type { RunFlowSnapshotSource } from '../types/runFlow';
+import { getSetupCheckTitle } from '../locales/setupStatusText';
+import { getChatSkillText } from '../locales/chatText';
 import { getTodayInShanghai } from '../utils/format';
 import { useStockIndex } from '../hooks/useStockIndex';
 import { resolveRegisteredIndexCanonical, toAssetAwareCodeKey, type AssetAwareAssetType } from '../utils/stockCode';
@@ -537,11 +539,10 @@ const HomePage: React.FC = () => {
       { id: '', name: t('home.defaultStrategyName'), description: t('home.defaultStrategyDescription') },
       ...analysisSkills.map((skill) => ({
         id: skill.id,
-        name: skill.name,
-        description: skill.description,
+        ...getChatSkillText(skill, uiLanguage),
       })),
     ],
-    [analysisSkills, t],
+    [analysisSkills, t, uiLanguage],
   );
   const closeStrategyMenu = useCallback((restoreFocus = false) => {
     setStrategyMenuOpen(false);
@@ -634,7 +635,7 @@ const HomePage: React.FC = () => {
     }
     const requiredNeedsAction = setupStatus.checks
       .filter((check) => check.required && check.status === 'needs_action')
-      .map((check) => check.title);
+      .map((check) => getSetupCheckTitle(check, uiLanguage));
     return requiredNeedsAction.slice(0, 3).join(uiLanguage === 'en' ? ', ' : '、');
   }, [setupStatus, uiLanguage]);
 
@@ -881,9 +882,10 @@ const HomePage: React.FC = () => {
         originalQuery: query,
         selectionSource: selectionSource ?? 'manual',
         skills: analysisSkills ?? selectedAnalysisSkills,
+        uiLanguage,
       });
     },
-    [query, selectedAnalysisSkills, submitAnalysis],
+    [query, selectedAnalysisSkills, submitAnalysis, uiLanguage],
   );
 
   useEffect(() => {
@@ -923,8 +925,9 @@ const HomePage: React.FC = () => {
       selectionSource: 'manual',
       forceRefresh: true,
       skills: selectedAnalysisSkills,
+      uiLanguage,
     });
-  }, [selectedAnalysisSkills, selectedReport, submitAnalysis]);
+  }, [selectedAnalysisSkills, selectedReport, submitAnalysis, uiLanguage]);
 
   const openTaskRunFlow = useCallback((task: TaskInfo) => {
     const stock = task.stockName || task.stockCode || task.taskId;
@@ -1559,7 +1562,7 @@ const HomePage: React.FC = () => {
                     className="home-surface-button flex h-10 max-w-[8.5rem] items-center gap-1.5 rounded-xl px-3 text-xs text-foreground disabled:cursor-not-allowed disabled:opacity-60 sm:max-w-[11rem]"
                   >
                     <SlidersHorizontal className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                    <span className="truncate">{selectedStrategy?.name || t('home.strategy')}</span>
+                    <span className="truncate">{(selectedStrategy ? getChatSkillText(selectedStrategy, uiLanguage).name : '') || t('home.strategy')}</span>
                   </button>
                   {strategyMenuOpen ? (
                     <div

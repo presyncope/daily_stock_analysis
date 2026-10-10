@@ -5,6 +5,7 @@ import { useBlocker, useLocation } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { useAuth, useDesktopUpdate, useSystemConfig } from '../hooks';
 import { useUiLanguage } from '../contexts/UiLanguageContext';
+import { getSetupCheckMessage, getSetupCheckNextStep, getSetupCheckTitle } from '../locales/setupStatusText';
 import { createParsedApiError, getParsedApiError, type ParsedApiError } from '../api/error';
 import { analysisApi } from '../api/analysis';
 import { screeningApi, notifyScreeningConfigChanged, notifySystemConfigChanged } from '../api/screening';
@@ -25,7 +26,7 @@ import {
   SettingsPanelErrorBoundary,
   SettingsSectionCard,
 } from '../components/settings';
-import { WEB_BUILD_INFO } from '../utils/constants';
+import { UNKNOWN_BUILD_TIME, WEB_BUILD_INFO } from '../utils/constants';
 import { parseStockListValue } from '../utils/stockList';
 import { getCategoryDescription, getCategoryTitle } from '../utils/systemConfigI18n';
 import type {
@@ -217,6 +218,7 @@ const FirstRunSetupCard: React.FC<FirstRunSetupCardProps> = ({
   listSeparator,
   t,
 }) => {
+  const { language } = useUiLanguage();
   const [isHidden, setIsHidden] = useState(false);
   const requiredMissing = status?.checks.filter((check) => check.required && check.status === 'needs_action') || [];
   const isComplete = Boolean(status?.isComplete);
@@ -235,7 +237,7 @@ const FirstRunSetupCard: React.FC<FirstRunSetupCardProps> = ({
     : requiredMissing.length
       ? t('settings.setupGuideMissingSummary', {
         count: requiredMissing.length,
-        labels: requiredMissing.slice(0, 3).map((check) => check.title).join(listSeparator),
+        labels: requiredMissing.slice(0, 3).map((check) => getSetupCheckTitle(check, language)).join(listSeparator),
       })
       : t('settings.setupGuideReadySummary');
 
@@ -306,14 +308,14 @@ const FirstRunSetupCard: React.FC<FirstRunSetupCardProps> = ({
                   {getSetupCheckIcon(check)}
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">{check.title}</p>
+                      <p className="text-sm font-semibold text-foreground">{getSetupCheckTitle(check, language)}</p>
                       <span className="rounded-full border settings-border bg-background/60 px-2 py-0.5 text-[11px] font-medium text-muted-text">
                         {getSetupCheckStatusLabel(check, t)}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs leading-5 text-muted-text">{check.message}</p>
+                    <p className="mt-1 text-xs leading-5 text-muted-text">{getSetupCheckMessage(check.message, language)}</p>
                     {check.nextStep ? (
-                      <p className="mt-2 text-xs leading-5 text-secondary-text">{check.nextStep}</p>
+                      <p className="mt-2 text-xs leading-5 text-secondary-text">{getSetupCheckNextStep(check.nextStep, language)}</p>
                     ) : null}
                   </div>
                 </div>
@@ -1454,7 +1456,7 @@ const SettingsPage: React.FC = () => {
                       {t('settings.versionBuildTime')}
                     </p>
                     <p className="mt-2 break-all font-mono text-sm text-foreground">
-                      {WEB_BUILD_INFO.buildTime}
+                      {uiLanguage === 'en' && WEB_BUILD_INFO.buildTime === UNKNOWN_BUILD_TIME ? 'Not provided' : WEB_BUILD_INFO.buildTime}
                     </p>
                   </div>
                   {shouldShowDesktopVersionCard ? (

@@ -1086,7 +1086,7 @@ describe('ChatPage', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: '导出会话为 Markdown 文件' }));
 
-    expect(mockDownloadSession).toHaveBeenCalledWith(mockStoreState.messages);
+    expect(mockDownloadSession).toHaveBeenCalledWith(mockStoreState.messages, 'zh');
     expect(mockFormatSessionAsMarkdown).not.toHaveBeenCalled();
   });
 
@@ -1491,6 +1491,48 @@ describe('ChatPage', () => {
     expect(mockStartStream.mock.calls.at(-1)?.[0]?.context).toBeUndefined();
   });
 
+  it('renders chat chrome, quick questions, and known strategy names in English', async () => {
+    window.localStorage.setItem(UI_LANGUAGE_STORAGE_KEY, 'en');
+    mockGetSkills.mockResolvedValue({
+      skills: [
+        { id: 'bull_trend', name: '默认多头趋势', description: '默认趋势' },
+        { id: 'chan_theory', name: '缠论', description: '结构分析' },
+        { id: 'custom_skill', name: '自定义策略', description: '自定义' },
+      ],
+      default_skill_id: 'bull_trend',
+    });
+
+    render(
+      <UiLanguageProvider>
+        <MemoryRouter initialEntries={['/chat']}>
+          <ChatPage />
+        </MemoryRouter>
+      </UiLanguageProvider>,
+    );
+
+    expect(await screen.findByRole('checkbox', { name: 'Chan theory' })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: '自定义策略' })).toBeInTheDocument();
+    expect(screen.getAllByText('Chat history').length).toBeGreaterThan(0);
+    expect(screen.getByText('Context compression')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Enter to send/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Analyze Kweichow Moutai (600519) with Chan theory' }));
+
+    await waitFor(() => {
+      expect(mockStartStream).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Analyze Kweichow Moutai (600519) with Chan theory',
+          skills: ['chan_theory'],
+        }),
+        expect.objectContaining({
+          skillNames: ['Chan theory'],
+          skillName: 'Chan theory',
+          language: 'en',
+        }),
+      );
+    });
+  });
+
   it('keeps a quick question in the input until the server accepts it', async () => {
     mockGetSkills.mockResolvedValue({
       skills: [{ id: 'chan_theory', name: '缠论', description: '结构分析' }],
@@ -1652,8 +1694,8 @@ describe('ChatPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: '发送到已配置的通知机器人/邮箱' }));
 
     await waitFor(() => {
-      expect(mockFormatSessionAsMarkdown).toHaveBeenCalledWith(mockStoreState.messages);
-      expect(mockSendChat).toHaveBeenCalledWith('# exported markdown');
+      expect(mockFormatSessionAsMarkdown).toHaveBeenCalledWith(mockStoreState.messages, 'zh');
+      expect(mockSendChat).toHaveBeenCalledWith('# exported markdown', 'zh');
     });
 
     expect(await screen.findByText('已发送到通知渠道')).toBeInTheDocument();
